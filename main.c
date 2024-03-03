@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <limits.h>
 #include <dirent.h>
+#include <string.h>
 #include <sys//stat.h>
 #include <unistd.h>
 #include <errno.h>
@@ -44,7 +45,16 @@ static size_t pathlen;
 
 static int ftw(char *pathname, Func *func) {
     fullpath = path_alloc(&pathlen); // Beginning at root
-    return 0;
+    
+    if (pathlen <= strlen(pathname)) {
+        pathlen = strlen(pathname) * 2;
+        if ((fullpath = realloc(fullpath, pathlen)) == NULL) {
+            err_quit("Couldn't allocate more memory for fullpath");
+        }
+    }
+
+    strcpy(fullpath, pathname);
+    return dopath(func);
 }
 
 // Allocates a path placeholder, taking care of the actual POSIX and XSI versions.
